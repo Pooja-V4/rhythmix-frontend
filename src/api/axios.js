@@ -45,3 +45,9 @@ export const removeSongFromPlaylist = (playlistId, songId) => API.delete(`/playl
 export const getFavorites = (userId) => API.get(`/favorites/${userId}`);
 export const addFavorite = (userId, songId) => API.post(`/favorites/${userId}/songs/${songId}`);
 export const removeFavorite = (userId, songId) => API.delete(`/favorites/${userId}/songs/${songId}`);
+
+// ============ PROFILE ============
+export const getProfile = (userId) => API.get(`/users/${userId}/profile`);
+export const updateProfile = (userId, data) => API.put(`/users/${userId}/profile`, data);
+export const changePassword = (userId, data) => API.put(`/users/${userId}/password`, data);
+export const deleteAccount = (userId) => API.delete(`/users/${userId}`);

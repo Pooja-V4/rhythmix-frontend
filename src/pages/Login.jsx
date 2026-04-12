@@ -21,9 +21,14 @@ export default function Login() {
       setUserInfo(response.data);   // saves token + userId + name
       navigate('/');
     } catch (err) {
-      setError(
-        err.response?.data || 'Invalid email or password'
-      );
+      const data = err.response?.data;
+      if (typeof data === 'string') {
+        setError(data);
+      } else if (data?.message) {
+        setError(data.message);
+      } else {
+        setError('Invalid email or password');
+      }
     } finally {
       setLoading(false);
     }

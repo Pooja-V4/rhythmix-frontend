@@ -18,12 +18,20 @@ export default function Signup() {
     try {
       // Real JWT register
       const response = await registerUser(form);
-      setUserInfo(response.data);   // saves token + userId + name
+      setUserInfo(response.data);
       navigate('/');
     } catch (err) {
-      setError(
-        err.response?.data || 'Signup failed. Try again.'
-      );
+      // ✅ Handle all possible error formats safely
+      const data = err.response?.data;
+      if (typeof data === 'string') {
+        setError(data);
+      } else if (data?.message) {
+        setError(data.message);
+      } else if (data?.error) {
+        setError(data.error);
+      } else {
+        setError('Signup failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -49,7 +57,9 @@ export default function Signup() {
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">Full Name</label>
+              <label className="text-sm font-semibold text-foreground mb-1 block">
+                Full Name
+              </label>
               <input
                 type="text"
                 placeholder="Your name"
@@ -60,7 +70,9 @@ export default function Signup() {
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">Email</label>
+              <label className="text-sm font-semibold text-foreground mb-1 block">
+                Email
+              </label>
               <input
                 type="email"
                 placeholder="you@example.com"
@@ -71,7 +83,9 @@ export default function Signup() {
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">Password</label>
+              <label className="text-sm font-semibold text-foreground mb-1 block">
+                Password
+              </label>
               <input
                 type="password"
                 placeholder="Create a password"
@@ -84,14 +98,17 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-primary text-black font-bold rounded-full text-base hover:scale-105 transition-transform disabled:opacity-50 mt-2"
+              className="w-full h-12 bg-primary text-black font-bold rounded-full text-base hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               {loading ? 'Creating account...' : 'Sign Up'}
             </button>
           </form>
           <div className="mt-6 text-center">
-            <span className="text-muted-foreground text-sm">Already have an account? </span>
-            <a href="/login" className="text-foreground font-semibold hover:text-primary text-sm underline">
+            <span className="text-muted-foreground text-sm">Already have an account?{' '}</span>
+            <a
+              href="/login"
+              className="text-foreground font-semibold hover:text-primary text-sm underline"
+            >
               Log in
             </a>
           </div>

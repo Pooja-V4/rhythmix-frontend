@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Library, Heart, Music2 } from 'lucide-react';
+import { Home, Search, Library, Heart, Music2, User } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/search', icon: Search, label: 'Search' },
-  { to: '/playlists', icon: Library, label: 'Your Library' },
+  { to: '/playlists', icon: Library, label: 'Your Playlists' },
 ];
 
 export default function AppSidebar() {
@@ -55,6 +55,24 @@ export default function AppSidebar() {
             <Heart className="h-3 w-3 text-white" />
           </div>
           <span className="font-medium">Liked Songs</span>
+        </Link>
+      </div>
+
+      {/* Profile link at bottom */}
+      <div className="px-3 pb-4 border-t border-border pt-4">
+        <Link
+          to="/profile"
+          className={cn(
+            'flex items-center gap-4 px-3 py-2.5 rounded-md text-sm font-semibold transition-colors',
+            location.pathname === '/profile'
+              ? 'text-foreground bg-sidebar-accent'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+            <User className="h-4 w-4 text-black" />
+          </div>
+          <span>Profile</span>
         </Link>
       </div>
     </aside>

@@ -8,6 +8,7 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Playlists from './pages/Playlists';
 import Search from './pages/Search';
+import Profile from './pages/Profile';  
 import { Toaster } from 'sonner';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/playlists" element={<Playlists />} />
               <Route path="/search" element={<Search />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </main>
         </div>
