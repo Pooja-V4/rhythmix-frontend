@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUsers } from '../api/axios';
-import { setUserId } from '../lib/auth';
+import { loginUser } from '../api/axios';
+import { setUserInfo } from '../lib/auth';
 import { Music2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -16,18 +16,14 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const response = await getUsers();
-      const matched = response.data.find(
-        (u) => u.email === form.email && u.password === form.password
+      // Real JWT login
+      const response = await loginUser(form);
+      setUserInfo(response.data);   // saves token + userId + name
+      navigate('/');
+    } catch (err) {
+      setError(
+        err.response?.data || 'Invalid email or password'
       );
-      if (matched) {
-        setUserId(matched.id);
-        navigate('/');
-      } else {
-        setError('Invalid email or password');
-      }
-    } catch {
-      setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -47,7 +43,7 @@ export default function Login() {
 
         <div className="bg-card rounded-xl p-8 shadow-2xl">
           {error && (
-            <p className="text-destructive text-sm text-center mb-4 bg-destructive/10 rounded-lg py-2">
+            <p className="text-destructive text-sm text-center mb-4 bg-destructive/10 rounded-lg py-2 px-3">
               {error}
             </p>
           )}

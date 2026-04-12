@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUser } from '../api/axios';
-import { setUserId } from '../lib/auth';
+import { registerUser } from '../api/axios';
+import { setUserInfo } from '../lib/auth';
 import { Music2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -16,11 +16,14 @@ export default function Signup() {
     setLoading(true);
     setError('');
     try {
-      const response = await createUser(form);
-      setUserId(response.data.id);
+      // Real JWT register
+      const response = await registerUser(form);
+      setUserInfo(response.data);   // saves token + userId + name
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed. Try again.');
+      setError(
+        err.response?.data || 'Signup failed. Try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -40,7 +43,7 @@ export default function Signup() {
 
         <div className="bg-card rounded-xl p-8 shadow-2xl">
           {error && (
-            <p className="text-destructive text-sm text-center mb-4 bg-destructive/10 rounded-lg py-2">
+            <p className="text-destructive text-sm text-center mb-4 bg-destructive/10 rounded-lg py-2 px-3">
               {error}
             </p>
           )}

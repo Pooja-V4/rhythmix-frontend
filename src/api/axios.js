@@ -1,14 +1,41 @@
 import axios from 'axios';
+import { getToken, clearUserId } from '../lib/auth';
 
 const API = axios.create({
   baseURL: 'http://localhost:8081',
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Attach JWT token to every request automatically
+API.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle 401 — token expired or invalid
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired — log out automatically
+      clearUserId();
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default API;
 
+// Auth endpoints — no token needed
+export const loginUser = (data) => axios.post('http://localhost:8081/auth/login', data);
+export const registerUser = (data) => axios.post('http://localhost:8081/auth/register', data);
+
+// Protected endpoints — token auto-attached by interceptor
 export const getUsers = () => API.get('/users');
-export const createUser = (data) => API.post('/users', data);
 export const getSongs = () => API.get('/songs');
 export const createSong = (data) => API.post('/songs', data);
 export const getUserPlaylists = (userId) => API.get(`/playlists/user/${userId}`);
