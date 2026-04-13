@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../api/axios';
+import { loginUser, googleAuth } from '../api/axios';
 import { setUserInfo } from '../lib/auth';
 import { Music2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,22 +17,33 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      // Real JWT login
       const response = await loginUser(form);
-      setUserInfo(response.data);   // saves token + userId + name
+      setUserInfo(response.data);
       navigate('/');
     } catch (err) {
       const data = err.response?.data;
-      if (typeof data === 'string') {
-        setError(data);
-      } else if (data?.message) {
-        setError(data.message);
-      } else {
-        setError('Invalid email or password');
-      }
+      if (typeof data === 'string') setError(data);
+      else if (data?.message) setError(data.message);
+      else setError('Invalid email or password');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Google login success
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      // Send Google token to your backend
+      const response = await googleAuth(credentialResponse.credential);
+      setUserInfo(response.data);
+      navigate('/');
+    } catch (err) {
+      setError('Google sign-in failed. Please try again.');
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign-in was cancelled or failed.');
   };
 
   return (
@@ -52,9 +64,33 @@ export default function Login() {
               {error}
             </p>
           )}
+
+          {/* Google Sign In Button */}
+          <div className="flex justify-center mb-6">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              theme="filled_black"
+              shape="pill"
+              text="continue_with"
+              size="large"
+              width="100%"
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          {/* Email/Password form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">Email</label>
+              <label className="text-sm font-semibold text-foreground mb-1 block">
+                Email
+              </label>
               <input
                 type="email"
                 placeholder="you@example.com"
@@ -65,7 +101,9 @@ export default function Login() {
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">Password</label>
+              <label className="text-sm font-semibold text-foreground mb-1 block">
+                Password
+              </label>
               <input
                 type="password"
                 placeholder="Password"
@@ -78,14 +116,19 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-primary text-black font-bold rounded-full text-base hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              className="w-full h-12 bg-primary text-black font-bold rounded-full text-base hover:scale-105 transition-transform disabled:opacity-50 mt-2"
             >
               {loading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
           <div className="mt-6 text-center">
-            <span className="text-muted-foreground text-sm">Don't have an account? </span>
-            <a href="/signup" className="text-foreground font-semibold hover:text-primary text-sm underline">
+            <span className="text-muted-foreground text-sm">
+              Don't have an account?{' '}
+            </span>
+            <a
+              href="/signup"
+              className="text-foreground font-semibold hover:text-primary text-sm underline"
+            >
               Sign up for Rhythmix
             </a>
           </div>

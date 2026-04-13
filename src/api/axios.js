@@ -51,3 +51,6 @@ export const getProfile = (userId) => API.get(`/users/${userId}/profile`);
 export const updateProfile = (userId, data) => API.put(`/users/${userId}/profile`, data);
 export const changePassword = (userId, data) => API.put(`/users/${userId}/password`, data);
 export const deleteAccount = (userId) => API.delete(`/users/${userId}`);
+
+export const googleAuth = (token) =>
+  axios.post('http://localhost:8081/auth/google', { token });
