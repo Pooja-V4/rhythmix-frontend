@@ -1,49 +1,82 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { loginUser, googleAuth } from '../api/axios';
+import { useNavigate, Link } from 'react-router-dom';
+import { loginUser } from '../api/axios';
 import { setUserInfo } from '../lib/auth';
-import { Music2 } from 'lucide-react';
+import { Music2, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { GoogleLogin } from '@react-oauth/google';
+import { googleAuth } from '../api/axios';
+import { toast } from 'sonner';
+import axios from 'axios';
 
 export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resentSuccess, setResentSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setUnverified(false);
+    setResentSuccess(false);
+
     try {
       const response = await loginUser(form);
       setUserInfo(response.data);
       navigate('/');
     } catch (err) {
       const data = err.response?.data;
-      if (typeof data === 'string') setError(data);
-      else if (data?.message) setError(data.message);
-      else setError('Invalid email or password');
+      if (data?.unverified === true) {
+        // Show unverified state with resend button
+        setUnverified(true);
+        setError(data.message || 'Please verify your email before logging in.');
+      } else if (typeof data === 'string') {
+        setError(data);
+      } else if (data?.message) {
+        setError(data.message);
+      } else {
+        setError('Invalid email or password');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Google login success
-  const handleGoogleSuccess = async (credentialResponse) => {
+  // resend handler
+  const handleResendVerification = async () => {
+    if (!form.email) {
+      toast.error('Please enter your email address first');
+      return;
+    }
+    setResending(true);
+    setResentSuccess(false);
     try {
-      // Send Google token to your backend
-      const response = await googleAuth(credentialResponse.credential);
-      setUserInfo(response.data);
-      navigate('/');
+      await axios.post('http://localhost:8081/auth/resend-verification', {
+        email: form.email
+      });
+      setResentSuccess(true);
+      toast.success('Verification email sent! Check your inbox.');
     } catch (err) {
-      setError('Google sign-in failed. Please try again.');
+      const data = err.response?.data;
+      toast.error(data?.message || 'Could not resend email. Try again.');
+    } finally {
+      setResending(false);
     }
   };
 
-  const handleGoogleError = () => {
-    setError('Google sign-in was cancelled or failed.');
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const response = await googleAuth(credentialResponse.credential);
+      setUserInfo(response.data);
+      navigate('/');
+    } catch {
+      setError('Google sign-in failed. Please try again.');
+    }
   };
 
   return (
@@ -59,22 +92,45 @@ export default function Login() {
         </div>
 
         <div className="bg-card rounded-xl p-8 shadow-2xl">
+
+          {/* Error message */}
           {error && (
-            <p className="text-destructive text-sm text-center mb-4 bg-destructive/10 rounded-lg py-2 px-3">
-              {error}
-            </p>
+            <div className="mb-4">
+              <p className="text-destructive text-sm text-center bg-destructive/10 rounded-lg py-2 px-3">
+                {error}
+              </p>
+
+              {/* Resend button shown only when unverified */}
+              {unverified && (
+                <div className="mt-3 text-center">
+                  {resentSuccess ? (
+                    <div className="flex items-center justify-center gap-2 text-primary text-sm">
+                      <Mail className="h-4 w-4" />
+                      <span>Verification email sent! Check your inbox.</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleResendVerification}
+                      disabled={resending}
+                      className="text-sm text-primary underline cursor-pointer hover:text-primary/80 disabled:opacity-50"
+                    >
+                      {resending ? 'Sending...' : '📧 Resend verification email'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
-          {/* Google Sign In Button */}
+          {/* Google Sign In */}
           <div className="flex justify-center mb-6">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
+              onError={() => setError('Google sign-in failed.')}
               theme="filled_black"
               shape="pill"
               text="continue_with"
               size="large"
-              width="100%"
             />
           </div>
 
@@ -88,9 +144,7 @@ export default function Login() {
           {/* Email/Password form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">
-                Email
-              </label>
+              <label className="text-sm font-semibold text-foreground mb-1 block">Email</label>
               <input
                 type="email"
                 placeholder="you@example.com"
@@ -101,9 +155,7 @@ export default function Login() {
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">
-                Password
-              </label>
+              <label className="text-sm font-semibold text-foreground mb-1 block">Password</label>
               <input
                 type="password"
                 placeholder="Password"
@@ -112,7 +164,17 @@ export default function Login() {
                 required
                 className="w-full h-11 px-3 rounded-md bg-input border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
+              {/* Forgot password link */}
+              <div className="flex justify-end mt-1">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -121,14 +183,10 @@ export default function Login() {
               {loading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
+
           <div className="mt-6 text-center">
-            <span className="text-muted-foreground text-sm">
-              Don't have an account?{' '}
-            </span>
-            <a
-              href="/signup"
-              className="text-foreground font-semibold hover:text-primary text-sm underline"
-            >
+            <span className="text-muted-foreground text-sm">Don't have an account? </span>
+            <a href="/signup" className="text-foreground font-semibold hover:text-primary text-sm underline">
               Sign up for Rhythmix
             </a>
           </div>

@@ -8,7 +8,10 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Playlists from './pages/Playlists';
 import Search from './pages/Search';
-import Profile from './pages/Profile';  
+import Profile from './pages/Profile'; 
+import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { Toaster } from 'sonner';
 
 function App() {
@@ -23,6 +26,9 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/playlists" element={<Playlists />} />
               <Route path="/search" element={<Search />} />

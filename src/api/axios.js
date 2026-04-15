@@ -54,3 +54,9 @@ export const deleteAccount = (userId) => API.delete(`/users/${userId}`);
 
 export const googleAuth = (token) =>
   axios.post('http://localhost:8081/auth/google', { token });
+
+export const forgotPassword = (email) =>
+  axios.post('http://localhost:8081/auth/forgot-password', { email });
+
+export const resetPassword = (token, newPassword) =>
+  axios.post('http://localhost:8081/auth/reset-password', { token, newPassword });
