@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getToken, clearUserId } from '../lib/auth';
 
 const API = axios.create({
-  baseURL: 'http://localhost:8081',
+  baseURL: 'http://localhost:8081', // backend port number
   headers: { 'Content-Type': 'application/json' },
 });
 

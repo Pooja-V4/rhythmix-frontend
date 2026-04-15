@@ -113,7 +113,7 @@ Rhythmix Frontend is a full-featured music player application with a dark Spotif
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/rhythmix-frontend.git
+git clone https://github.com/Pooja-V4/rhythmix-frontend.git
 cd rhythmix-frontend
 ```
 
@@ -151,7 +151,7 @@ npm run dev
 
 App starts at: `http://localhost:5173`
 
-> ⚠️ Make sure the Rhythmix Backend is running on port 8081 before starting the frontend.
+> ⚠️ Make sure the Rhythmix Backend is running on port 8081(backend port number) before starting the frontend.
 
 ---
 
