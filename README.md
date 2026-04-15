@@ -221,6 +221,9 @@ rhythmix-frontend/
 ![Playlist](screenshots/playlist1.png)
 ![Playlist](screenshots/playlist2.png)
 
+### 😎 Profile
+![Profile](screenshots/Profile.png)
+
 ---
 ## 📄 Pages & Components
 
