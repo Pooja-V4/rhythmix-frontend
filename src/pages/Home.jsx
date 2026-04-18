@@ -8,6 +8,7 @@ import { getFavorites, addFavorite, createSong } from '../api/axios';
 import SongCard from '../Components/SongCard';
 import { playSong } from '../lib/playerStore';
 import { toast } from 'sonner';
+import ArtistsSection from '../Components/ArtistsSection';
 
 
 const TRENDING_QUERIES = [
@@ -165,6 +166,9 @@ export default function Home() {
                 <SongCard key={song.id} song={song} index={i} queue={trending} />
               ))}
             </div>
+            <div className="mt-12">
+              <ArtistsSection />
+            </div>
           </div>
         )}
       </div>
@@ -245,6 +249,9 @@ export default function Home() {
             </div>
           )}
         </section>
+
+        {/* Popular Artists */}
+        <ArtistsSection isFav={isFav} onFavorite={handleFavorite} />
 
         {/* Genre Mixes */}
         <section>

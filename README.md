@@ -129,6 +129,9 @@ Create a `.env` file in the project root:
 
 ```env
 VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+
+# Last.fm API key for artist images
+VITE_LASTFM_API_KEY=your_api_key_here 
 ```
 
 **Google Client ID setup:**
@@ -140,6 +143,19 @@ VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 5. Authorized JavaScript origins: http://localhost:5173
 6. Authorized redirect URIs: http://localhost:5173
 7. Copy Client ID → paste in .env
+```
+
+**Last.fm API Key:**
+```
+1. Go to 👉 https://www.last.fm/join
+2. Create an account (Google/email) and verify it
+3. Go to 👉 https://www.last.fm/api/account/create
+4. Fill the form:
+   - Application name → Rhythmix
+   - Description → Music web app 
+   - Website → http://localhost:5173
+   - Click Submit
+5. Copy Api → paste in .env
 ```
 
 ### Running the App
