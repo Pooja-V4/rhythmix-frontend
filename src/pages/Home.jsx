@@ -99,10 +99,26 @@ export default function Home() {
       .catch(console.error);
   }, [loggedIn, userId]);
 
-  const isFav = (songId) => favorites.some((f) => f.song?.id === songId);
+  const isFav = (song) => favorites.some(
+  (f) =>
+    f.song?.title?.toLowerCase() === song?.title?.toLowerCase() &&
+    f.song?.artist?.toLowerCase() === song?.artist?.toLowerCase()
+  );
 
   const handleFavorite = async (song) => {
     if (!userId) { navigate('/login'); return; }
+
+    // Check by title+artist — more reliable than ID
+    const alreadyFavorited = favorites.some(
+      (f) =>
+        f.song?.title?.toLowerCase() === song.title?.toLowerCase() &&
+        f.song?.artist?.toLowerCase() === song.artist?.toLowerCase()
+    );
+
+    if (alreadyFavorited) {
+    toast.info('Already in your favorites!');
+    return;
+    }
     try {
       const res = await createSong({
         title: song.title,
@@ -242,7 +258,7 @@ export default function Home() {
                   song={song}
                   index={i}
                   queue={trending}
-                  isFavorited={isFav(song.id)}
+                  isFavorited={isFav(song)}
                   onFavorite={() => handleFavorite(song)}
                 />
               ))}

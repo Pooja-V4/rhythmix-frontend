@@ -56,17 +56,19 @@ export default function SongCard({ song, index, queue, isFavorited, onFavorite }
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {/* Favorite */}
           {onFavorite && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onFavorite(); }}
-              className={`h-7 w-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-                isFavorited
-                  ? 'text-primary bg-background/80'
-                  : 'bg-background/80 text-muted-foreground hover:text-foreground'
-              }`}
-              title="Add to favorites"
-            >
-              <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-current' : ''}`} />
-            </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onFavorite && onFavorite(); }}
+            className={`h-7 w-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+            isFavorited ? 'bg-primary/20' : 'bg-background/80'
+            }`}
+            title={isFavorited ? 'Already in favorites' : 'Add to favorites'}
+          >
+          <Heart
+            className="h-3.5 w-3.5"
+            fill={isFavorited ? 'currentColor' : 'none'}
+            style={{ color: isFavorited ? '#1DB954' : '#9ca3af' }}
+          />
+          </button>
           )}
 
           {/* Add to playlist */}

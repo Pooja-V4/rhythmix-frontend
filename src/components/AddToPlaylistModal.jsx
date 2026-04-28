@@ -9,6 +9,7 @@ function AddToPlaylistModal({ song, onClose }) {
   const userId = getUserId();
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [addedTo, setAddedTo] = useState(new Set());
   const [addingTo, setAddingTo] = useState(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
@@ -22,19 +23,35 @@ function AddToPlaylistModal({ song, onClose }) {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  const fetchPlaylists = async () => {
+   const fetchPlaylists = async () => {
     try {
       const res = await getUserPlaylists(Number(userId));
-      setPlaylists(res.data || []);
+      const data = res.data || [];
+      setPlaylists(data);
+
+      // Pre-check which playlists already contain this song (by title match)
+      const alreadyIn = new Set();
+      data.forEach((pl) => {
+        const hasSong = pl.songs?.some(
+          (s) =>
+            s.title?.toLowerCase() === song.title?.toLowerCase() &&
+            s.artist?.toLowerCase() === song.artist?.toLowerCase()
+        );
+        if (hasSong) alreadyIn.add(pl.id);
+      });
+      setAddedTo(alreadyIn);
     } catch {
       setPlaylists([]);
     } finally {
       setLoading(false);
     }
   };
-
   // Save song to backend then add to playlist
   const handleAddToPlaylist = async (playlistId) => {
+    if (addedTo.has(playlistId)) {
+      toast.info('This song is already in this playlist!');
+      return;
+    }
     setAddingTo(playlistId);
     try {
       // Step 1 — save song to backend DB
@@ -48,10 +65,22 @@ function AddToPlaylistModal({ song, onClose }) {
 
       // Step 2 — add to playlist
       await addSongToPlaylist(playlistId, songId);
+      setAddedTo((prev) => new Set([...prev, playlistId]));
       toast.success(`Added "${song.title}" to playlist!`);
-      onClose();
+
+      // Auto close after short delay
+      setTimeout(() => onClose(), 800);
     } catch (err) {
-      toast.error('Song may already be in this playlist!');
+      const status = err.response?.status;
+      const message = err.response?.data?.message;
+
+      if (status === 409) {
+        // Handle duplicate from backend
+        setAddedTo((prev) => new Set([...prev, playlistId]));
+        toast.info('This song is already in this playlist!');
+      } else {
+        toast.error(message || 'Could not add song.');
+      }  
     } finally {
       setAddingTo(null);
     }
@@ -59,6 +88,16 @@ function AddToPlaylistModal({ song, onClose }) {
 
   const handleCreatePlaylist = async () => {
     if (!newName.trim()) return;
+
+    // Check duplicate name before calling API
+    const nameExists = playlists.some(
+      (pl) => pl.name.toLowerCase() === newName.trim().toLowerCase()
+    );
+    if (nameExists) {
+      toast.error(`You already have a playlist named "${newName.trim()}"`);
+      return;
+    }
+    
     setCreating(true);
     try {
       await createPlaylist(Number(userId), { name: newName });

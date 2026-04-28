@@ -42,6 +42,16 @@ export default function Playlists() {
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
+
+    // Check duplicate name on frontend BEFORE calling API
+    const nameExists = playlists.some(
+      (pl) => pl.name.toLowerCase() === newName.trim().toLowerCase()
+    );
+    if (nameExists) {
+      toast.error(`You already have a playlist named "${newName.trim()}"`);
+      return;
+    }
+    
     setCreating(true);
     try {
       await createPlaylist(Number(userId), { name: newName });

@@ -38,6 +38,39 @@ export default function Dashboard() {
     }
   };
 
+  const handleFavorite = async (song) => {
+  if (!userId) { navigate('/login'); return; }
+  // Check by title+artist — more reliable than ID
+  const alreadyFavorited = favorites.some(
+    (f) =>
+      f.song?.title?.toLowerCase() === song.title?.toLowerCase() &&
+      f.song?.artist?.toLowerCase() === song.artist?.toLowerCase()
+  );
+  if (alreadyFavorited) {
+    toast.info('Already in your favorites!');
+    return;
+  }
+
+  try {
+    const res = await createSong({
+      title: song.title,
+      artist: song.artist,
+      album: song.album || '',
+      durationSeconds: song.durationSeconds || 0,
+    });
+    await addFavorite(Number(userId), res.data.id);
+    const favRes = await getFavorites(Number(userId));
+    setFavorites(favRes.data || []);
+    toast.success(`❤️ "${song.title}" added to favorites!`);
+  } catch (err) {
+    const status = err.response?.status;
+    if (status === 409) {
+      toast.info('Already in your favorites!');
+    } else {
+      toast.error('Could not add to favorites.');
+    }
+  }
+};
   const handleUnfavorite = async (songId) => {
     try {
       await removeFavorite(Number(userId), songId);

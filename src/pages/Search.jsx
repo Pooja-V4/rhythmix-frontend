@@ -3,13 +3,13 @@ import { useLocation } from 'react-router-dom';
 import { Search as SearchIcon, X, Heart, Plus, Play, Pause } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { searchiTunes } from '../lib/musicSearch';
-import { createSong, addFavorite, getUserPlaylists } from '../api/axios';
+import { createSong, addFavorite, getFavorites } from '../api/axios';
 import { getUserId } from '../lib/auth';
 import { usePlayerStore, playSong } from '../lib/playerStore';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
 import { toast } from 'sonner';
 
-// ── Skeleton card shown while loading ──────────────────────────────────────
+// ── Skeleton card ───────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
     <div
@@ -22,40 +22,11 @@ function SkeletonCard() {
         style={{ background: 'rgba(255,255,255,0.08)', animation: 'rhythmix-pulse 1.4s ease-in-out infinite' }}
       />
       <div className="p-3 space-y-2">
-        {/* Title */}
-        <div
-          className="h-3 rounded-full"
-          style={{
-            width: '75%',
-            background: 'rgba(255,255,255,0.08)',
-            animation: 'rhythmix-pulse 1.4s ease-in-out infinite 0.1s',
-          }}
-        />
-        {/* Artist */}
-        <div
-          className="h-2.5 rounded-full"
-          style={{
-            width: '50%',
-            background: 'rgba(255,255,255,0.06)',
-            animation: 'rhythmix-pulse 1.4s ease-in-out infinite 0.2s',
-          }}
-        />
-        {/* Button row */}
+        <div className="h-3 rounded-full" style={{ width: '75%', background: 'rgba(255,255,255,0.08)', animation: 'rhythmix-pulse 1.4s ease-in-out infinite 0.1s' }} />
+        <div className="h-2.5 rounded-full" style={{ width: '50%', background: 'rgba(255,255,255,0.06)', animation: 'rhythmix-pulse 1.4s ease-in-out infinite 0.2s' }} />
         <div className="flex gap-2 pt-1">
-          <div
-            className="flex-1 h-7 rounded-lg"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              animation: 'rhythmix-pulse 1.4s ease-in-out infinite 0.3s',
-            }}
-          />
-          <div
-            className="w-7 h-7 rounded-lg"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              animation: 'rhythmix-pulse 1.4s ease-in-out infinite 0.4s',
-            }}
-          />
+          <div className="flex-1 h-7 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)', animation: 'rhythmix-pulse 1.4s ease-in-out infinite 0.3s' }} />
+          <div className="w-7 h-7 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)', animation: 'rhythmix-pulse 1.4s ease-in-out infinite 0.4s' }} />
         </div>
       </div>
     </div>
@@ -63,7 +34,7 @@ function SkeletonCard() {
 }
 
 // ── Song card ───────────────────────────────────────────────────────────────
-function SongCard({ song, index, queue, onFavorite, onAddToPlaylist }) {
+function SongCard({ song, index, queue, onFavorite, onAddToPlaylist, isFavorited }) {
   const { currentSong, isPlaying } = usePlayerStore();
   const isActive = currentSong?.id === song.id;
 
@@ -74,12 +45,8 @@ function SongCard({ song, index, queue, onFavorite, onAddToPlaylist }) {
       transition={{ delay: index * 0.025, duration: 0.25 }}
       className="group relative rounded-xl overflow-hidden cursor-pointer"
       style={{
-        background: isActive
-          ? 'rgba(29,158,117,0.1)'
-          : 'rgba(255,255,255,0.04)',
-        border: isActive
-          ? '1px solid rgba(29,158,117,0.35)'
-          : '1px solid rgba(255,255,255,0.07)',
+        background: isActive ? 'rgba(29,158,117,0.1)' : 'rgba(255,255,255,0.04)',
+        border: isActive ? '1px solid rgba(29,158,117,0.35)' : '1px solid rgba(255,255,255,0.07)',
         transition: 'border 0.2s, background 0.2s',
       }}
       onClick={() => song.previewUrl && playSong(song, queue, index)}
@@ -96,10 +63,7 @@ function SongCard({ song, index, queue, onFavorite, onAddToPlaylist }) {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
           />
         ) : (
-          <div
-            className="w-full h-full flex items-center justify-center text-4xl"
-            style={{ background: 'rgba(255,255,255,0.06)' }}
-          >
+          <div className="w-full h-full flex items-center justify-center text-4xl" style={{ background: 'rgba(255,255,255,0.06)' }}>
             🎵
           </div>
         )}
@@ -110,10 +74,7 @@ function SongCard({ song, index, queue, onFavorite, onAddToPlaylist }) {
             className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             style={{ background: 'rgba(0,0,0,0.45)' }}
           >
-            <div
-              className="h-11 w-11 rounded-full flex items-center justify-center"
-              style={{ background: '#1D9E75' }}
-            >
+            <div className="h-11 w-11 rounded-full flex items-center justify-center" style={{ background: '#1D9E75' }}>
               {isActive && isPlaying
                 ? <Pause className="h-5 w-5 text-black fill-current" />
                 : <Play className="h-5 w-5 text-black fill-current ml-0.5" />
@@ -122,18 +83,10 @@ function SongCard({ song, index, queue, onFavorite, onAddToPlaylist }) {
           </div>
         )}
 
-        {/* Currently playing indicator */}
+        {/* Playing badge */}
         {isActive && isPlaying && (
           <div className="absolute top-2 left-2">
-            <span
-              className="text-xs font-bold px-2 py-0.5 rounded-full"
-              style={{
-                background: '#1D9E75',
-                color: '#000',
-                fontSize: '10px',
-                letterSpacing: '0.5px',
-              }}
-            >
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: '#1D9E75', color: '#000', fontSize: '10px', letterSpacing: '0.5px' }}>
               PLAYING
             </span>
           </div>
@@ -142,15 +95,7 @@ function SongCard({ song, index, queue, onFavorite, onAddToPlaylist }) {
         {/* No preview badge */}
         {!song.previewUrl && (
           <div className="absolute top-2 right-2">
-            <span
-              className="text-xs px-2 py-0.5 rounded-full"
-              style={{
-                background: 'rgba(233,69,96,0.2)',
-                color: '#e94560',
-                border: '1px solid rgba(233,69,96,0.3)',
-                fontSize: '10px',
-              }}
-            >
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(233,69,96,0.2)', color: '#e94560', border: '1px solid rgba(233,69,96,0.3)', fontSize: '10px' }}>
               No preview
             </span>
           </div>
@@ -159,10 +104,7 @@ function SongCard({ song, index, queue, onFavorite, onAddToPlaylist }) {
 
       {/* Info */}
       <div className="p-3">
-        <p
-          className="text-sm font-semibold truncate mb-0.5"
-          style={{ color: isActive ? '#1D9E75' : '#f3f4f6' }}
-        >
+        <p className="text-sm font-semibold truncate mb-0.5" style={{ color: isActive ? '#1D9E75' : '#f3f4f6' }}>
           {song.title}
         </p>
         <p className="text-xs truncate mb-2.5" style={{ color: '#6b7280' }}>
@@ -171,11 +113,9 @@ function SongCard({ song, index, queue, onFavorite, onAddToPlaylist }) {
 
         {/* Action buttons */}
         <div className="flex gap-2">
+          {/* Play button */}
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              song.previewUrl && playSong(song, queue, index);
-            }}
+            onClick={(e) => { e.stopPropagation(); song.previewUrl && playSong(song, queue, index); }}
             disabled={!song.previewUrl}
             className="flex-1 h-7 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
@@ -188,15 +128,24 @@ function SongCard({ song, index, queue, onFavorite, onAddToPlaylist }) {
             {isActive && isPlaying ? 'Pause' : 'Play'}
           </button>
 
+          {/* Favorite button — shows filled/green if already favorited */}
           <button
             onClick={(e) => { e.stopPropagation(); onFavorite(song); }}
             className="h-7 w-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
-            title="Add to favorites"
+            style={{
+              background: isFavorited ? 'rgba(233,69,96,0.15)' : 'rgba(255,255,255,0.06)',
+              border: isFavorited ? '1px solid rgba(233,69,96,0.3)' : '1px solid rgba(255,255,255,0.08)',
+            }}
+            title={isFavorited ? 'Already in favorites' : 'Add to favorites'}
           >
-            <Heart className="h-3.5 w-3.5" style={{ color: '#e94560' }} />
+            <Heart
+              className="h-3.5 w-3.5"
+              fill={isFavorited ? '#e94560' : 'none'}
+              style={{ color: '#e94560' }}
+            />
           </button>
 
+          {/* Add to playlist button */}
           <button
             onClick={(e) => { e.stopPropagation(); onAddToPlaylist(song); }}
             className="h-7 w-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
@@ -234,9 +183,20 @@ export default function Search() {
   const [hasSearched, setHasSearched] = useState(false);
   const [modalSong, setModalSong] = useState(null);
 
+  // Favorites state — was missing before
+  const [favorites, setFavorites] = useState([]);
+
   const debounceRef = useRef(null);
   const controllerRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Load favorites on mount so heart icons show correct state
+  useEffect(() => {
+    if (!userId) return;
+    getFavorites(Number(userId))
+      .then((res) => setFavorites(res.data || []))
+      .catch(console.error);
+  }, [userId]);
 
   // Support ?q= from genre/home navigation
   useEffect(() => {
@@ -281,25 +241,49 @@ export default function Search() {
       const songs = await searchiTunes(q);
       setResults(songs);
     } catch (err) {
-      if (err.name !== 'AbortError') {
-        setResults([]);
-      }
+      if (err.name !== 'AbortError') setResults([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Check by title+artist — reliable duplicate detection
+  const isFav = (song) => favorites.some(
+    (f) =>
+      f.song?.title?.toLowerCase() === song?.title?.toLowerCase() &&
+      f.song?.artist?.toLowerCase() === song?.artist?.toLowerCase()
+  );
+
   const handleFavorite = async (song) => {
     if (!userId) return;
+
+    // Block duplicate before API call
+    if (isFav(song)) {
+      toast.info('Already in your favorites!');
+      return;
+    }
+
     try {
       const res = await createSong({
-        title: song.title, artist: song.artist,
-        album: song.album, durationSeconds: song.durationSeconds,
+        title: song.title,
+        artist: song.artist,
+        album: song.album || '',
+        durationSeconds: song.durationSeconds || 0,
       });
       await addFavorite(Number(userId), res.data.id);
+
+      // Refresh favorites list so heart updates immediately
+      const favRes = await getFavorites(Number(userId));
+      setFavorites(favRes.data || []);
+
       toast.success(`❤️ "${song.title}" added to favorites!`);
-    } catch {
-      toast.error('Already in favorites!');
+    } catch (err) {
+      const status = err.response?.status;
+      if (status === 409) {
+        toast.info('Already in your favorites!');
+      } else {
+        toast.error('Could not add to favorites.');
+      }
     }
   };
 
@@ -329,7 +313,6 @@ export default function Search() {
             style={{
               background: 'rgba(255,255,255,0.07)',
               border: '1px solid rgba(255,255,255,0.12)',
-              transition: 'border 0.2s',
             }}
           >
             {/* Search icon / spinner */}
@@ -361,7 +344,8 @@ export default function Search() {
             {query && (
               <div className="flex items-center gap-2 flex-shrink-0">
                 {loading && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  <span
+                    className="text-xs px-2 py-0.5 rounded-full font-medium"
                     style={{ background: 'rgba(29,158,117,0.15)', color: '#1D9E75', fontSize: '10px' }}
                   >
                     LIVE
@@ -369,7 +353,7 @@ export default function Search() {
                 )}
                 <button
                   onClick={handleClear}
-                  className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer transition-colors"
+                  className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer"
                   style={{ background: 'rgba(255,255,255,0.1)' }}
                 >
                   <X className="h-3.5 w-3.5" style={{ color: '#9ca3af' }} />
@@ -389,14 +373,19 @@ export default function Search() {
               >
                 {loading ? (
                   <p className="text-xs" style={{ color: '#6b7280' }}>
-                    Searching for <span style={{ color: '#1D9E75', fontWeight: 600 }}>"{query}"</span>...
+                    Searching for{' '}
+                    <span style={{ color: '#1D9E75', fontWeight: 600 }}>"{query}"</span>...
                   </p>
                 ) : (
                   <p className="text-xs" style={{ color: '#6b7280' }}>
-                    {results.length > 0
-                      ? <><span style={{ color: '#1D9E75', fontWeight: 600 }}>{results.length} results</span> for "{query}"</>
-                      : <span style={{ color: '#e94560' }}>No results for "{query}"</span>
-                    }
+                    {results.length > 0 ? (
+                      <>
+                        <span style={{ color: '#1D9E75', fontWeight: 600 }}>{results.length} results</span>
+                        {' '}for "{query}"
+                      </>
+                    ) : (
+                      <span style={{ color: '#e94560' }}>No results for "{query}"</span>
+                    )}
                   </p>
                 )}
               </motion.div>
@@ -408,7 +397,10 @@ export default function Search() {
         {loading && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-3 w-3 rounded-full" style={{ background: '#1D9E75', animation: 'rhythmix-pulse 1s ease-in-out infinite' }} />
+              <div
+                className="h-3 w-3 rounded-full"
+                style={{ background: '#1D9E75', animation: 'rhythmix-pulse 1s ease-in-out infinite' }}
+              />
               <p className="text-sm font-medium" style={{ color: '#1D9E75' }}>Loading results...</p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
@@ -423,10 +415,11 @@ export default function Search() {
         {!loading && results.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-foreground">
-                Results
-              </h2>
-              <span className="text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(29,158,117,0.1)', color: '#1D9E75', border: '1px solid rgba(29,158,117,0.2)' }}>
+              <h2 className="text-lg font-bold text-foreground">Results</h2>
+              <span
+                className="text-xs px-3 py-1 rounded-full"
+                style={{ background: 'rgba(29,158,117,0.1)', color: '#1D9E75', border: '1px solid rgba(29,158,117,0.2)' }}
+              >
                 {results.length} songs
               </span>
             </div>
@@ -439,6 +432,7 @@ export default function Search() {
                   queue={results}
                   onFavorite={handleFavorite}
                   onAddToPlaylist={setModalSong}
+                  isFavorited={isFav(song)}   // ✅ pass correct state
                 />
               ))}
             </div>
@@ -488,16 +482,10 @@ export default function Search() {
                   className="relative h-24 rounded-2xl overflow-hidden text-left cursor-pointer"
                   style={{ background: cat.gradient }}
                 >
-                  <div
-                    className="absolute inset-0"
-                    style={{ background: 'rgba(0,0,0,0.15)' }}
-                  />
+                  <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.15)' }} />
                   <div className="relative h-full flex flex-col justify-end p-4">
-                    <p className="text-white font-bold text-base leading-tight">
-                      {cat.name}
-                    </p>
+                    <p className="text-white font-bold text-base leading-tight">{cat.name}</p>
                   </div>
-                  {/* Decorative circle */}
                   <div
                     className="absolute -bottom-3 -right-3 h-16 w-16 rounded-full"
                     style={{ background: 'rgba(255,255,255,0.1)' }}
