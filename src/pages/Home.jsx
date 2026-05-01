@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 import { isLoggedIn, getUserId } from '../lib/auth';
 import { searchiTunes } from '../lib/musicSearch';
 import { getFavorites, addFavorite, createSong } from '../api/axios';
-import SongCard from '../Components/SongCard';
+import SongCard from '../components/SongCard';
 import { playSong } from '../lib/playerStore';
 import { toast } from 'sonner';
-import ArtistsSection from '../Components/ArtistsSection';
+import ArtistsSection from '../components/ArtistsSection';
 
 
 const TRENDING_QUERIES = [
