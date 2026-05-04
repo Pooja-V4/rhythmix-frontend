@@ -9,6 +9,8 @@
 
 **A Spotify-inspired music player web app built with React, Tailwind CSS, Framer Motion, and the iTunes API.**
 
+🌐 **Live Demo:** [https://rhythmix-frontend.vercel.app/](https://rhythmix-frontend.vercel.app/)
+
 [Features](#-features) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [Project Structure](#-project-structure) • [Screenshots](#-screenshots) • [Contributing](#-contributing)
 
 </div>
@@ -132,6 +134,9 @@ VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 
 # Last.fm API key for artist images
 VITE_LASTFM_API_KEY=your_api_key_here 
+
+#backend url
+VITE_API_URL=http://localhost:8081
 ```
 
 **Google Client ID setup:**
