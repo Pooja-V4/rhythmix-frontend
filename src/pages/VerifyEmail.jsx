@@ -12,6 +12,7 @@ export default function VerifyEmail() {
 
   const [status, setStatus] = useState('loading'); // loading | success | error
   const [message, setMessage] = useState('');
+  const BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     if (!token) {
@@ -25,13 +26,12 @@ export default function VerifyEmail() {
   const verifyToken = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8081/auth/verify-email?token=${token}`
-      );
+        `${BASE_URL}/auth/verify-email?token=${token}`
+    );
       // Auto login after verification
       setUserInfo(response.data);
       setStatus('success');
       setMessage('Your email has been verified! Redirecting...');
-
       // Redirect to home after 2 seconds
       setTimeout(() => navigate('/'), 2000);
     } catch (err) {

@@ -17,6 +17,7 @@ export default function Login() {
   const [unverified, setUnverified] = useState(false);
   const [resending, setResending] = useState(false);
   const [resentSuccess, setResentSuccess] = useState(false);
+  const BASE_URL = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,7 +57,7 @@ export default function Login() {
     setResending(true);
     setResentSuccess(false);
     try {
-      await axios.post('http://localhost:8081/auth/resend-verification', {
+      await axios.post(`${BASE_URL}/auth/resend-verification` , {
         email: form.email
       });
       setResentSuccess(true);
